@@ -6,6 +6,7 @@ import { Player } from '../entities/Player.js';
 import { AiCar }  from '../entities/AiCar.js';
 import { Hud }    from '../ui/Hud.js';
 import * as CFG   from '../config.js';
+import { resumeAudio, startEngine, updateEngine, stopEngine, playCrash, playExplosion } from '../audio/SfxManager.js';
 
 export class GameScene extends Phaser.Scene {
 
@@ -30,6 +31,23 @@ export class GameScene extends Phaser.Scene {
     this.initSpawners();
 
     this.hud = new Hud(this);
+
+    /* zoom the camera in and follow the player */
+    this.cameras.main.setZoom(1.35);
+    this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
+    this.cameras.main.setBounds(0, 0, CFG.GAME_WIDTH, CFG.GAME_HEIGHT);
+
+    /* dedicated UI camera – no zoom, no scroll */
+    this.uiCam = this.cameras.add(0, 0, CFG.GAME_WIDTH, CFG.GAME_HEIGHT);
+    this.uiCam.setScroll(0, 0);
+
+    /* main camera ignores HUD objects */
+    const hudObjects = this.hud.getObjects();
+    this.cameras.main.ignore(hudObjects);
+
+    /* UI camera ignores everything except HUD */
+    this.uiCam.ignore(this.children.list.filter(o => !hudObjects.includes(o)));
+
     this.startCountdown();
   }
 
@@ -101,17 +119,21 @@ export class GameScene extends Phaser.Scene {
       this.selectedMonster.stats
     );
     this.player.monsterName = this.selectedMonster.name;
+
+    /* player indicator – small arrow + "YOU" label */
+    this.playerArrow = this.add.triangle(0, 0, 0, 0, 6, -10, 12, 0, 0x00ff00)
+      .setOrigin(0.5, 1).setDepth(25);
+    this.playerLabel = this.add.text(0, 0, 'YOU', {
+      fontSize: '10px', fontFamily: 'monospace', color: '#00ff00',
+      stroke: '#000', strokeThickness: 2
+    }).setOrigin(0.5, 1).setDepth(25);
   }
 
   spawnAiCars() {
     const spawnPoints = [
       { x: 90,  y: 90 },
-      { x: 400, y: 90 },
       { x: 710, y: 90 },
-      { x: 90,  y: 300 },
-      { x: 710, y: 300 },
       { x: 90,  y: 510 },
-      { x: 400, y: 510 },
       { x: 710, y: 510 }
     ];
 
@@ -120,10 +142,17 @@ export class GameScene extends Phaser.Scene {
       .slice(0, CFG.GAMEPLAY.OPPONENT_COUNT);
 
     this.aiCars = this.add.group();
+    this.aiLabels = [];
     opponents.forEach((monster, idx) => {
       const spawn = spawnPoints[idx];
       const ai = new AiCar(this, spawn.x, spawn.y, monster.textureKey, monster.name);
       this.aiCars.add(ai);
+
+      const label = this.add.text(spawn.x, spawn.y - 20, monster.name.toUpperCase(), {
+        fontSize: '9px', fontFamily: 'monospace', color: '#' + monster.color.toString(16).padStart(6, '0'),
+        stroke: '#000', strokeThickness: 2
+      }).setOrigin(0.5, 1).setDepth(25);
+      this.aiLabels.push({ label, car: ai });
     });
 
     this.aiCarsAlive = opponents.length;
@@ -190,6 +219,7 @@ export class GameScene extends Phaser.Scene {
     player.addScore(CFG.SCORE.HIT);
 
     this.collisionFx(player, ai, relSpeed);
+    playCrash(relSpeed / 300);
   }
 
   onAiHitAi(a, b) {
@@ -202,6 +232,7 @@ export class GameScene extends Phaser.Scene {
     b.takeDamage(base * a.damageMultiplier);
 
     this.collisionFx(a, b, relSpeed);
+    playCrash(relSpeed / 300);
   }
 
   /* ---------- powerup collection --------------------------------- */
@@ -326,6 +357,7 @@ export class GameScene extends Phaser.Scene {
     pu.setData('type', typeKey);
     pu.setData('cfg', cfg);
     this.powerupGroup.add(pu);
+    this.ignoreOnUi(pu);
 
     this.tweens.add({
       targets: pu, scaleX: 1.3, scaleY: 1.3,
@@ -352,6 +384,7 @@ export class GameScene extends Phaser.Scene {
     pit.setData('type', typeKey);
     pit.setData('cfg', cfg);
     this.pitfallGroup.add(pit);
+    this.ignoreOnUi(pit);
 
     /* oil evaporates */
     if (typeKey === 'OIL_SLICK') {
@@ -372,6 +405,7 @@ export class GameScene extends Phaser.Scene {
       fontSize: '80px', fontFamily: 'monospace', color: '#ffcc00',
       stroke: '#000', strokeThickness: 6
     }).setOrigin(0.5).setDepth(100);
+    this.ignoreOnUi(label);
 
     let count = 3;
     this.time.addEvent({
@@ -391,6 +425,8 @@ export class GameScene extends Phaser.Scene {
           this.player.body.enable = true;
           this.aiCars.children.each(ai => { ai.body.enable = true; });
           this.gameState = 'playing';
+          resumeAudio();
+          startEngine();
           this.powerupTimer.paused = false;
           this.time.delayedCall(4000, () => { this.pitfallTimer.paused = false; });
         } else {
@@ -415,12 +451,36 @@ export class GameScene extends Phaser.Scene {
       if (ai.active && ai.alive) ai.update(time, delta);
     });
 
+    /* engine pitch follows player speed */
+    const speedNorm = this.player.body.velocity.length() / this.player.maxSpeed;
+    updateEngine(Math.min(speedNorm, 1));
+
+    /* update car identifiers */
+    if (this.player.alive) {
+      this.playerArrow.setPosition(this.player.x, this.player.y - 20);
+      this.playerLabel.setPosition(this.player.x, this.player.y - 28);
+      this.playerArrow.setVisible(true);
+      this.playerLabel.setVisible(true);
+    } else {
+      this.playerArrow.setVisible(false);
+      this.playerLabel.setVisible(false);
+    }
+    this.aiLabels.forEach(({ label, car }) => {
+      if (car.alive) {
+        label.setPosition(car.x, car.y - 20);
+        label.setVisible(true);
+      } else {
+        label.setVisible(false);
+      }
+    });
+
     /* smoke on low-HP cars */
     this.tickSmoke(this.player, 0.30);
     this.aiCars.children.each(ai => this.tickSmoke(ai, 0.25));
 
     /* lose check */
     if (!this.player.alive && this.gameState === 'playing') {
+      playExplosion();
       this.endGame(false);
     }
   }
@@ -432,6 +492,7 @@ export class GameScene extends Phaser.Scene {
   onAiDestroyed(ai) {
     this.aiCarsAlive--;
     this.explosionFx(ai.x, ai.y);
+    playExplosion();
     this.showFloatingText(ai.x, ai.y, `${ai.monsterName} DESTROYED!`, '#ff4444');
     this.player.addScore(CFG.SCORE.DESTROY);
 
@@ -446,6 +507,8 @@ export class GameScene extends Phaser.Scene {
 
   endGame(victory) {
     this.gameState = 'gameover';
+    stopEngine();
+    this.cameras.main.stopFollow();
     this.powerupTimer.paused = true;
     this.pitfallTimer.paused = true;
 
@@ -485,6 +548,7 @@ export class GameScene extends Phaser.Scene {
       quantity: n,
       emitting: false
     }).setDepth(20);
+    this.ignoreOnUi(em);
     em.explode(n);
     this.time.delayedCall(500, () => em.destroy());
 
@@ -501,6 +565,7 @@ export class GameScene extends Phaser.Scene {
       quantity: 30,
       emitting: false
     }).setDepth(20);
+    this.ignoreOnUi(fire);
     fire.explode(30);
 
     const smoke = this.add.particles(x, y, 'smoke', {
@@ -512,6 +577,7 @@ export class GameScene extends Phaser.Scene {
       quantity: 12,
       emitting: false
     }).setDepth(19);
+    this.ignoreOnUi(smoke);
     smoke.explode(12);
 
     this.cameras.main.shake(200, 0.012);
@@ -529,6 +595,7 @@ export class GameScene extends Phaser.Scene {
       quantity: 8,
       emitting: false
     }).setDepth(20);
+    this.ignoreOnUi(em);
     em.explode(8);
     this.time.delayedCall(400, () => em.destroy());
   }
@@ -547,6 +614,7 @@ export class GameScene extends Phaser.Scene {
       quantity: 1,
       emitting: false
     }).setDepth(15);
+    this.ignoreOnUi(em);
     em.explode(1);
     this.time.delayedCall(700, () => em.destroy());
   }
@@ -556,6 +624,7 @@ export class GameScene extends Phaser.Scene {
       fontSize: '16px', fontFamily: 'monospace', color,
       stroke: '#000', strokeThickness: 3
     }).setOrigin(0.5).setDepth(30);
+    this.ignoreOnUi(t);
 
     this.tweens.add({
       targets: t, y: y - 40, alpha: 0,
@@ -586,5 +655,11 @@ export class GameScene extends Phaser.Scene {
     const safe = this.safePosition();
     car.setPosition(safe.x, safe.y);
     car.body.reset(safe.x, safe.y);
+  }
+
+  /** Hide a newly-created world object from the UI camera. */
+  ignoreOnUi(obj) {
+    if (this.uiCam) this.uiCam.ignore(obj);
+    return obj;
   }
 }

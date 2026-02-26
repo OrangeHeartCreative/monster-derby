@@ -1,5 +1,5 @@
 /* -------------------------------------------------
- *  Monster Derby – Game Constants
+ *  Crash Derby Monsters – Game Constants
  * ------------------------------------------------- */
 
 export const GAME_WIDTH = 800;
@@ -11,61 +11,61 @@ export const MONSTER_ROSTER = [
     name: 'Fang',
     textureKey: 'monster_fang',
     color: 0x22cc22,
-    stats: { maxSpeed: 260, acceleration: 360, drag: 320, turnSpeed: 155, bounce: 0.62, hp: 95, sideGrip: 0.28, sideGripBrake: 0.44 }
+    stats: { maxSpeed: 260, acceleration: 360, drag: 320, turnSpeed: 155, bounce: 0.62, hp: 95, sideGrip: 0.92, sideGripBrake: 0.96 }
   },
   {
     id: 'brute',
     name: 'Brute',
     textureKey: 'monster_brute',
     color: 0xcc2222,
-    stats: { maxSpeed: 225, acceleration: 320, drag: 360, turnSpeed: 135, bounce: 0.58, hp: 130, sideGrip: 0.32, sideGripBrake: 0.48 }
+    stats: { maxSpeed: 225, acceleration: 320, drag: 360, turnSpeed: 135, bounce: 0.58, hp: 130, sideGrip: 0.93, sideGripBrake: 0.97 }
   },
   {
     id: 'viper',
     name: 'Viper',
     textureKey: 'monster_viper',
     color: 0x22aaff,
-    stats: { maxSpeed: 285, acceleration: 410, drag: 280, turnSpeed: 165, bounce: 0.66, hp: 85, sideGrip: 0.22, sideGripBrake: 0.38 }
+    stats: { maxSpeed: 285, acceleration: 410, drag: 280, turnSpeed: 165, bounce: 0.66, hp: 85, sideGrip: 0.90, sideGripBrake: 0.95 }
   },
   {
     id: 'magma',
     name: 'Magma',
     textureKey: 'monster_magma',
     color: 0xff6622,
-    stats: { maxSpeed: 245, acceleration: 355, drag: 340, turnSpeed: 145, bounce: 0.64, hp: 110, sideGrip: 0.30, sideGripBrake: 0.46 }
+    stats: { maxSpeed: 245, acceleration: 355, drag: 340, turnSpeed: 145, bounce: 0.64, hp: 110, sideGrip: 0.92, sideGripBrake: 0.96 }
   },
   {
     id: 'specter',
     name: 'Specter',
     textureKey: 'monster_specter',
     color: 0x9933cc,
-    stats: { maxSpeed: 275, acceleration: 390, drag: 300, turnSpeed: 175, bounce: 0.65, hp: 90, sideGrip: 0.24, sideGripBrake: 0.40 }
+    stats: { maxSpeed: 275, acceleration: 390, drag: 300, turnSpeed: 175, bounce: 0.65, hp: 90, sideGrip: 0.91, sideGripBrake: 0.95 }
   },
   {
     id: 'titan',
     name: 'Titan',
     textureKey: 'monster_titan',
     color: 0x777777,
-    stats: { maxSpeed: 215, acceleration: 300, drag: 380, turnSpeed: 125, bounce: 0.56, hp: 140, sideGrip: 0.34, sideGripBrake: 0.52 }
+    stats: { maxSpeed: 215, acceleration: 300, drag: 380, turnSpeed: 125, bounce: 0.56, hp: 140, sideGrip: 0.94, sideGripBrake: 0.97 }
   },
   {
     id: 'blitz',
     name: 'Blitz',
     textureKey: 'monster_blitz',
     color: 0xffcc00,
-    stats: { maxSpeed: 295, acceleration: 430, drag: 260, turnSpeed: 170, bounce: 0.68, hp: 80, sideGrip: 0.20, sideGripBrake: 0.35 }
+    stats: { maxSpeed: 295, acceleration: 430, drag: 260, turnSpeed: 170, bounce: 0.68, hp: 80, sideGrip: 0.90, sideGripBrake: 0.94 }
   },
   {
     id: 'thorn',
     name: 'Thorn',
     textureKey: 'monster_thorn',
     color: 0x22aa55,
-    stats: { maxSpeed: 250, acceleration: 345, drag: 335, turnSpeed: 150, bounce: 0.62, hp: 115, sideGrip: 0.31, sideGripBrake: 0.47 }
+    stats: { maxSpeed: 250, acceleration: 345, drag: 335, turnSpeed: 150, bounce: 0.62, hp: 115, sideGrip: 0.92, sideGripBrake: 0.96 }
   }
 ];
 
 export const GAMEPLAY = {
-  OPPONENT_COUNT: 7
+  OPPONENT_COUNT: 4
 };
 
 /* ---------- Arena ---------- */
@@ -84,8 +84,8 @@ export const PLAYER = {
   DRAG: 320,
   TURN_SPEED: 155,        // degrees / s
   BOUNCE: 0.65,
-  SIDE_GRIP: 0.26,
-  SIDE_GRIP_BRAKE: 0.42,
+  SIDE_GRIP: 0.92,
+  SIDE_GRIP_BRAKE: 0.96,
   HP: 100
 };
 

@@ -1,5 +1,5 @@
 /* -------------------------------------------------
- *  Monster Derby – Entry Point
+ *  Crash Derby Monsters – Entry Point
  * ------------------------------------------------- */
 import Phaser from 'phaser';
 import { PreloadScene } from './scenes/PreloadScene.js';

@@ -44,57 +44,50 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     /* input */
     this.cursors = scene.input.keyboard.createCursorKeys();
     this.wasd    = scene.input.keyboard.addKeys({
-      up: 'W', down: 'S', left: 'A', right: 'D', brake: 'SPACE'
+      up: 'W', down: 'S', left: 'A', right: 'D'
     });
   }
 
   /* ---- per-frame ------------------------------------------------ */
 
-  update() {
+  update(_time, delta) {
     if (!this.alive) return;
 
     const left  = this.cursors.left.isDown  || this.wasd.left.isDown;
     const right = this.cursors.right.isDown || this.wasd.right.isDown;
     const up    = this.cursors.up.isDown    || this.wasd.up.isDown;
     const down  = this.cursors.down.isDown  || this.wasd.down.isDown;
-    const brake = this.wasd.brake.isDown;
+    const accel = this.cursors.space.isDown;
 
-    /* turn (only effective when moving) */
-    const speed      = this.body.velocity.length();
-    const turnFactor = Math.min(speed / 80, 1);
+    /* direction keys set the target facing angle */
+    let dx = 0;
+    let dy = 0;
+    if (left)  dx -= 1;
+    if (right) dx += 1;
+    if (up)    dy -= 1;
+    if (down)  dy += 1;
 
-    if (left) {
-      this.body.setAngularVelocity(-this.turnSpeed * turnFactor);
-    } else if (right) {
-      this.body.setAngularVelocity(this.turnSpeed * turnFactor);
-    } else {
-      this.body.setAngularVelocity(0);
+    if (dx !== 0 || dy !== 0) {
+      const target = Math.atan2(dy, dx);
+      const step = Phaser.Math.DegToRad(this.turnSpeed) * (delta / 1000);
+      this.rotation = Phaser.Math.Angle.RotateTo(this.rotation, target, step);
     }
+    this.body.setAngularVelocity(0);
 
-    /* throttle / reverse */
+    /* space = accelerate in facing direction */
     const maxSpd = this.maxSpeed * this.speedMultiplier;
     this.body.setMaxVelocity(maxSpd);
 
-    if (up) {
+    if (accel) {
       this.scene.physics.velocityFromRotation(
         this.rotation, this.accelerationForce, this.body.acceleration
-      );
-    } else if (down) {
-      this.scene.physics.velocityFromRotation(
-        this.rotation, -this.accelerationForce * 0.5, this.body.acceleration
       );
     } else {
       this.body.setAcceleration(0);
     }
 
-    /* brake */
-    if (brake) {
-      this.body.setDrag(this.baseDrag * 3.5, this.baseDrag * 3.5);
-    } else {
-      this.body.setDrag(this.baseDrag, this.baseDrag);
-    }
-
-    this.applyGrip(brake);
+    this.body.setDrag(this.baseDrag, this.baseDrag);
+    this.applyGrip(false);
   }
 
   /* ---- damage --------------------------------------------------- */
