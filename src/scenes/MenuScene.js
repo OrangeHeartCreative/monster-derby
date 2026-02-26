@@ -163,6 +163,7 @@ export class MenuScene extends Phaser.Scene {
     /* animate stat bars */
     this.statBars.forEach(({ bar, def }) => {
       const pct = Phaser.Math.Clamp(stats[def.key] / def.max, 0, 1);
+      this.tweens.killTweensOf(bar);
       this.tweens.add({
         targets: bar, displayWidth: 100 * pct,
         duration: 200, ease: 'Cubic.easeOut'

@@ -148,8 +148,10 @@ export class GameScene extends Phaser.Scene {
       const ai = new AiCar(this, spawn.x, spawn.y, monster.textureKey, monster.name);
       this.aiCars.add(ai);
 
+      const colorNum = Number.isFinite(Number(monster.color)) ? Number(monster.color) : 0x000000;
+      const safeColor = (colorNum >= 0 && colorNum <= 0xFFFFFF) ? colorNum : 0x000000;
       const label = this.add.text(spawn.x, spawn.y - 20, monster.name.toUpperCase(), {
-        fontSize: '9px', fontFamily: 'monospace', color: '#' + monster.color.toString(16).padStart(6, '0'),
+        fontSize: '9px', fontFamily: 'monospace', color: '#' + safeColor.toString(16).padStart(6, '0'),
         stroke: '#000', strokeThickness: 2
       }).setOrigin(0.5, 1).setDepth(25);
       this.aiLabels.push({ label, car: ai });
@@ -452,7 +454,9 @@ export class GameScene extends Phaser.Scene {
     });
 
     /* engine pitch follows player speed */
-    const speedNorm = this.player.body.velocity.length() / this.player.maxSpeed;
+    const speedNorm = (typeof this.player.maxSpeed === 'number' && this.player.maxSpeed > 0)
+      ? this.player.body.velocity.length() / this.player.maxSpeed
+      : 0;
     updateEngine(Math.min(speedNorm, 1));
 
     /* update car identifiers */

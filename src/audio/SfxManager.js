@@ -80,8 +80,9 @@ export function stopEngine() {
 export function playCrash(intensity) {
   const c = getCtx();
   const t = c.currentTime;
-  const vol = 0.10 + Math.min(intensity, 1) * 0.18;
-  const dur = 0.15 + Math.min(intensity, 1) * 0.15;
+  const intensityClamped = Math.max(0, Math.min(Number(intensity) || 0, 1));
+  const vol = 0.10 + intensityClamped * 0.18;
+  const dur = 0.15 + intensityClamped * 0.15;
 
   /* --- metallic crunch (noise burst) --- */
   const bufLen = Math.ceil(c.sampleRate * dur);

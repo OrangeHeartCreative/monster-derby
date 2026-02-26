@@ -2,23 +2,29 @@
 
 Top-down retro demolition derby built with **Phaser 3** and **Vite**.
 
-## Quick Start
-
-```bash
-npm install
-npm run dev
-```
-
-Open **http://localhost:5173** in your browser.
-
 ## Controls
+
+### Menu
 
 | Key | Action |
 |---|---|
-| `Arrow keys` / `WASD` | Steer and accelerate |
-| `SPACE` | Brake |
-| `ENTER` | Start / restart |
-| `ESC` | Back to menu (game-over screen) |
+| `LEFT` / `A` | Previous monster |
+| `RIGHT` / `D` | Next monster |
+| `ENTER` / `SPACE` | Confirm selection and start |
+
+### In-Game
+
+| Key | Action |
+|---|---|
+| `Arrow keys` / `WASD` | Steer (change facing direction) |
+| `SPACE` | Accelerate (thrust in facing direction) |
+
+### Game Over
+
+| Key | Action |
+|---|---|
+| `ENTER` | Play again (same monster) |
+| `ESC` | Return to menu |
 
 ## Gameplay
 
@@ -26,7 +32,7 @@ Choose your monster, then survive and destroy the entire rival lineup.
 
 ### Monster Selection
 
-- Pick from **8 unique monsters** on the title screen (`LEFT` / `RIGHT`)
+- Pick from **8 unique monsters** on the title screen (`LEFT` / `RIGHT` or `A` / `D`)
 - Each monster has differentiated stats (speed, acceleration, turn, HP, grip)
 - Press `ENTER` or `SPACE` to lock your selection and start
 
@@ -65,3 +71,4 @@ Output is in `dist/`.
 - **Phaser 3** (Arcade physics, procedurally generated placeholder textures)
 - **Vite** dev server and bundler
 - Zero external image or audio assets required
+- Defensive input validation on audio, physics, and UI code paths

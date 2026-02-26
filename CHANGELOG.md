@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.1] - 2026-02-26
+
+### Fixed
+- Sanitized and clamped `intensity` in `playCrash` to prevent bad volume/duration from negative or non-number values.
+- Guarded `speedNorm` calculation against division by zero when `player.maxSpeed` is missing or invalid.
+- Validated `monster.color` before hex conversion in AI label creation; falls back to black (`0x000000`) for invalid values.
+- Prevented tween stacking in monster-selection stat bars by killing in-flight tweens before adding new ones.
+
 ## [0.2.0] - 2026-02-25
 
 ### Added
