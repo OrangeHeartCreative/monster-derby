@@ -24,7 +24,7 @@ export class Hud {
     }).setOrigin(0.5, 0).setDepth(D);
 
     /* ---- foes remaining ---- */
-    this.foesTxt = scene.add.text(GAME_WIDTH - 12, 10, 'FOES: 4', {
+    this.foesTxt = scene.add.text(GAME_WIDTH - 12, 10, `FOES: ${scene.aiCarsAlive}`, {
       ...S, color: '#ff6666'
     }).setOrigin(1, 0).setDepth(D);
 

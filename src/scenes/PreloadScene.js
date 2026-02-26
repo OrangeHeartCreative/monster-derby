@@ -3,6 +3,7 @@
  *  so the game needs zero external image files.
  * ------------------------------------------------- */
 import Phaser from 'phaser';
+import { MONSTER_ROSTER } from '../config.js';
 
 export class PreloadScene extends Phaser.Scene {
   constructor() {
@@ -39,14 +40,9 @@ export class PreloadScene extends Phaser.Scene {
   /* ---- car textures (facing RIGHT = 0°) ------------------------- */
 
   generateCarTextures() {
-    const palette = [
-      ['player',    0x22cc22],
-      ['ai_red',    0xcc2222],
-      ['ai_blue',   0x2255dd],
-      ['ai_purple', 0xaa22cc],
-      ['ai_orange', 0xdd8822]
-    ];
-    palette.forEach(([key, col]) => this.makeCarTexture(key, col));
+    MONSTER_ROSTER.forEach(monster => {
+      this.makeCarTexture(monster.textureKey, monster.color);
+    });
   }
 
   makeCarTexture(key, bodyColor) {

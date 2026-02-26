@@ -17,9 +17,11 @@ export class GameScene extends Phaser.Scene {
   /*  CREATE                                                        */
   /* ============================================================= */
 
-  create() {
+  create(data = {}) {
     this.gameState   = 'countdown'; // countdown | playing | gameover
     this.aiCarsAlive = 0;
+    this.selectedMonster = data.selectedMonster ?? CFG.MONSTER_ROSTER[0];
+    this.totalAiCount = 0;
 
     this.buildArena();
     this.spawnPlayer();
@@ -91,22 +93,41 @@ export class GameScene extends Phaser.Scene {
   /* ---- entities ------------------------------------------------- */
 
   spawnPlayer() {
-    this.player = new Player(this, 400, 480);
+    this.player = new Player(
+      this,
+      400,
+      480,
+      this.selectedMonster.textureKey,
+      this.selectedMonster.stats
+    );
+    this.player.monsterName = this.selectedMonster.name;
   }
 
   spawnAiCars() {
-    const defs = [
-      { x: 120, y: 120, key: 'ai_red',    name: 'Blaze'  },
-      { x: 680, y: 120, key: 'ai_blue',   name: 'Frost'  },
-      { x: 120, y: 480, key: 'ai_purple', name: 'Shadow' },
-      { x: 680, y: 480, key: 'ai_orange', name: 'Rusty'  }
+    const spawnPoints = [
+      { x: 90,  y: 90 },
+      { x: 400, y: 90 },
+      { x: 710, y: 90 },
+      { x: 90,  y: 300 },
+      { x: 710, y: 300 },
+      { x: 90,  y: 510 },
+      { x: 400, y: 510 },
+      { x: 710, y: 510 }
     ];
+
+    const opponents = CFG.MONSTER_ROSTER
+      .filter(m => m.id !== this.selectedMonster.id)
+      .slice(0, CFG.GAMEPLAY.OPPONENT_COUNT);
+
     this.aiCars = this.add.group();
-    defs.forEach(d => {
-      const ai = new AiCar(this, d.x, d.y, d.key, d.name);
+    opponents.forEach((monster, idx) => {
+      const spawn = spawnPoints[idx];
+      const ai = new AiCar(this, spawn.x, spawn.y, monster.textureKey, monster.name);
       this.aiCars.add(ai);
     });
-    this.aiCarsAlive = defs.length;
+
+    this.aiCarsAlive = opponents.length;
+    this.totalAiCount = opponents.length;
   }
 
   /* ---- collisions ----------------------------------------------- */
@@ -245,12 +266,12 @@ export class GameScene extends Phaser.Scene {
 
     switch (type) {
       case 'OIL_SLICK':
-        car.body.setAngularVelocity(Phaser.Math.Between(-500, 500));
-        car.body.setDrag(40, 40);
+        car.body.setAngularVelocity(Phaser.Math.Between(-220, 220));
+        car.body.setDrag(car.baseDrag * 0.55, car.baseDrag * 0.55);
         this.time.delayedCall(cfg.duration, () => {
           if (car.alive) {
             car.body.setAngularVelocity(0);
-            car.body.setDrag(200, 200);
+            car.body.setDrag(car.baseDrag, car.baseDrag);
           }
         });
         break;
@@ -439,7 +460,10 @@ export class GameScene extends Phaser.Scene {
       this.scene.start('GameOverScene', {
         victory,
         score: this.player.score,
-        aiDestroyed: 4 - this.aiCarsAlive
+        aiDestroyed: this.totalAiCount - this.aiCarsAlive,
+        totalOpponents: this.totalAiCount,
+        playerMonsterName: this.player.monsterName,
+        selectedMonster: this.selectedMonster
       });
     });
   }

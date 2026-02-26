@@ -13,6 +13,9 @@ export class GameOverScene extends Phaser.Scene {
     const victory     = data.victory     ?? false;
     const score       = data.score       ?? 0;
     const aiDestroyed = data.aiDestroyed ?? 0;
+    const totalOpponents = data.totalOpponents ?? 4;
+    const playerMonsterName = data.playerMonsterName ?? 'MONSTER';
+    const selectedMonster = data.selectedMonster ?? null;
 
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2,
       GAME_WIDTH, GAME_HEIGHT, 0x0a0a0a);
@@ -32,8 +35,13 @@ export class GameOverScene extends Phaser.Scene {
       stroke: '#000', strokeThickness: 4
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 310, `MONSTERS DESTROYED: ${aiDestroyed} / 4`, {
+    this.add.text(GAME_WIDTH / 2, 310, `MONSTERS DESTROYED: ${aiDestroyed} / ${totalOpponents}`, {
       fontSize: '20px', fontFamily: 'monospace', color: '#ff8800',
+      stroke: '#000', strokeThickness: 3
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2, 350, `YOUR MONSTER: ${playerMonsterName.toUpperCase()}`, {
+      fontSize: '16px', fontFamily: 'monospace', color: '#88ff88',
       stroke: '#000', strokeThickness: 3
     }).setOrigin(0.5);
 
@@ -54,7 +62,7 @@ export class GameOverScene extends Phaser.Scene {
     });
 
     /* ---- input ---- */
-    this.input.keyboard.once('keydown-ENTER', () => this.scene.start('GameScene'));
+    this.input.keyboard.once('keydown-ENTER', () => this.scene.start('GameScene', { selectedMonster }));
     this.input.keyboard.once('keydown-ESC',   () => this.scene.start('MenuScene'));
   }
 }

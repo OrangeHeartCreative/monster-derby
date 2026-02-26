@@ -22,7 +22,19 @@ Open **http://localhost:5173** in your browser.
 
 ## Gameplay
 
-Destroy all four AI monsters before they wreck you!
+Choose your monster, then survive and destroy the entire rival lineup.
+
+### Monster Selection
+
+- Pick from **8 unique monsters** on the title screen (`LEFT` / `RIGHT`)
+- Each monster has differentiated stats (speed, acceleration, turn, HP, grip)
+- Press `ENTER` or `SPACE` to lock your selection and start
+
+### Match Format
+
+- Single-player derby arena at **800x600**
+- **8 total cars per match** (you + 7 AI opponents)
+- Win by destroying all rivals before your HP reaches zero
 
 ### Powerups
 
@@ -36,7 +48,7 @@ Destroy all four AI monsters before they wreck you!
 
 | Hazard | Effect |
 |---|---|
-| **Oil Slick** (brown) | Spin-out – loss of control for 1.5 s |
+| **Oil Slick** (brown) | Brief spin-out with reduced traction |
 | **Pit Hole** (black) | 30 HP damage + teleport to random spot |
 | **Spike Strip** (orange) | 15 HP damage + heavy slow |
 

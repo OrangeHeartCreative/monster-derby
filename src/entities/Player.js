@@ -6,14 +6,23 @@ import { PLAYER, COMBAT, SCORE as SCORE_CFG } from '../config.js';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
 
-  constructor(scene, x, y) {
-    super(scene, x, y, 'player');
+  constructor(scene, x, y, textureKey = 'monster_fang', stats = {}) {
+    super(scene, x, y, textureKey);
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
+    this.maxSpeed = stats.maxSpeed ?? PLAYER.MAX_SPEED;
+    this.accelerationForce = stats.acceleration ?? PLAYER.ACCELERATION;
+    this.baseDrag = stats.drag ?? PLAYER.DRAG;
+    this.turnSpeed = stats.turnSpeed ?? PLAYER.TURN_SPEED;
+    this.bounce = stats.bounce ?? PLAYER.BOUNCE;
+    this.baseHp = stats.hp ?? PLAYER.HP;
+    this.sideGrip = stats.sideGrip ?? PLAYER.SIDE_GRIP;
+    this.sideGripBrake = stats.sideGripBrake ?? PLAYER.SIDE_GRIP_BRAKE;
+
     /* state */
-    this.hp               = PLAYER.HP;
-    this.maxHp            = PLAYER.HP;
+    this.hp               = this.baseHp;
+    this.maxHp            = this.baseHp;
     this.alive            = true;
     this.shieldHits       = 0;
     this.speedMultiplier  = 1;
@@ -26,9 +35,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     /* physics */
     this.body.setCircle(13, 9, 1);
-    this.body.setDrag(PLAYER.DRAG, PLAYER.DRAG);
-    this.body.setMaxVelocity(PLAYER.MAX_SPEED);
-    this.body.setBounce(PLAYER.BOUNCE);
+    this.body.setDrag(this.baseDrag, this.baseDrag);
+    this.body.setMaxVelocity(this.maxSpeed);
+    this.body.setBounce(this.bounce);
     this.body.setCollideWorldBounds(true);
     this.setDepth(10);
 
@@ -55,24 +64,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const turnFactor = Math.min(speed / 80, 1);
 
     if (left) {
-      this.body.setAngularVelocity(-PLAYER.TURN_SPEED * turnFactor);
+      this.body.setAngularVelocity(-this.turnSpeed * turnFactor);
     } else if (right) {
-      this.body.setAngularVelocity(PLAYER.TURN_SPEED * turnFactor);
+      this.body.setAngularVelocity(this.turnSpeed * turnFactor);
     } else {
       this.body.setAngularVelocity(0);
     }
 
     /* throttle / reverse */
-    const maxSpd = PLAYER.MAX_SPEED * this.speedMultiplier;
+    const maxSpd = this.maxSpeed * this.speedMultiplier;
     this.body.setMaxVelocity(maxSpd);
 
     if (up) {
       this.scene.physics.velocityFromRotation(
-        this.rotation, PLAYER.ACCELERATION, this.body.acceleration
+        this.rotation, this.accelerationForce, this.body.acceleration
       );
     } else if (down) {
       this.scene.physics.velocityFromRotation(
-        this.rotation, -PLAYER.ACCELERATION * 0.5, this.body.acceleration
+        this.rotation, -this.accelerationForce * 0.5, this.body.acceleration
       );
     } else {
       this.body.setAcceleration(0);
@@ -80,10 +89,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
     /* brake */
     if (brake) {
-      this.body.setDrag(PLAYER.DRAG * 5, PLAYER.DRAG * 5);
+      this.body.setDrag(this.baseDrag * 3.5, this.baseDrag * 3.5);
     } else {
-      this.body.setDrag(PLAYER.DRAG, PLAYER.DRAG);
+      this.body.setDrag(this.baseDrag, this.baseDrag);
     }
+
+    this.applyGrip(brake);
   }
 
   /* ---- damage --------------------------------------------------- */
@@ -184,5 +195,23 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.shieldHits > 0)       { this.setTint(0x4488ff); return; }
     if (this.damageMultiplier > 1) { this.setTint(0xff4444); return; }
     this.clearTint();
+  }
+
+  applyGrip(braking) {
+    const velocity = this.body.velocity;
+    if (velocity.lengthSq() < 4) return;
+
+    const forward = new Phaser.Math.Vector2(
+      Math.cos(this.rotation),
+      Math.sin(this.rotation)
+    );
+
+    const forwardSpeed = velocity.dot(forward);
+    const forwardVel = forward.scale(forwardSpeed);
+    const lateralVel = velocity.clone().subtract(forwardVel);
+    const grip = braking ? this.sideGripBrake : this.sideGrip;
+
+    velocity.x = forwardVel.x + lateralVel.x * (1 - grip);
+    velocity.y = forwardVel.y + lateralVel.y * (1 - grip);
   }
 }

@@ -2,7 +2,7 @@
  *  MenuScene – title screen
  * ------------------------------------------------- */
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT } from '../config.js';
+import { GAME_WIDTH, GAME_HEIGHT, MONSTER_ROSTER } from '../config.js';
 
 export class MenuScene extends Phaser.Scene {
   constructor() {
@@ -10,6 +10,8 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create() {
+    this.selectedIndex = 0;
+
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2,
       GAME_WIDTH, GAME_HEIGHT, 0x1a1a0a);
 
@@ -29,10 +31,20 @@ export class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     /* ---- decorative cars ---- */
-    if (this.textures.exists('player')) {
-      this.add.image(280, 340, 'player').setScale(2);
-      this.add.image(520, 340, 'ai_red').setScale(2).setFlipX(true);
-    }
+    this.previewCar = this.add.image(400, 340, MONSTER_ROSTER[0].textureKey).setScale(2.4);
+
+    this.selectionTitle = this.add.text(GAME_WIDTH / 2, 410, '', {
+      fontSize: '22px', fontFamily: 'monospace', color: '#fff',
+      stroke: '#000', strokeThickness: 4
+    }).setOrigin(0.5);
+
+    this.selectionStats = this.add.text(GAME_WIDTH / 2, 446, '', {
+      fontSize: '14px', fontFamily: 'monospace', color: '#bbb'
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2, 476, 'LEFT/RIGHT TO CHOOSE MONSTER', {
+      fontSize: '13px', fontFamily: 'monospace', color: '#ffaa44'
+    }).setOrigin(0.5);
 
     /* ---- controls ---- */
     const controlLines = [
@@ -41,14 +53,14 @@ export class MenuScene extends Phaser.Scene {
       'COLLECT POWERUPS · DODGE PITFALLS'
     ];
     controlLines.forEach((line, i) => {
-      this.add.text(GAME_WIDTH / 2, 410 + i * 28, line, {
+      this.add.text(GAME_WIDTH / 2, 502 + i * 18, line, {
         fontSize: '14px', fontFamily: 'monospace', color: '#aaa'
       }).setOrigin(0.5);
     });
 
     /* ---- start prompt ---- */
-    const startTxt = this.add.text(GAME_WIDTH / 2, 530, 'PRESS ENTER TO START', {
-      fontSize: '22px', fontFamily: 'monospace', color: '#fff',
+    const startTxt = this.add.text(GAME_WIDTH / 2, 582, 'PRESS ENTER TO START', {
+      fontSize: '18px', fontFamily: 'monospace', color: '#fff',
       stroke: '#000', strokeThickness: 4
     }).setOrigin(0.5);
 
@@ -58,7 +70,34 @@ export class MenuScene extends Phaser.Scene {
     });
 
     /* ---- input ---- */
-    this.input.keyboard.once('keydown-ENTER', () => this.scene.start('GameScene'));
-    this.input.keyboard.once('keydown-SPACE', () => this.scene.start('GameScene'));
+    this.input.keyboard.on('keydown-LEFT', () => this.shiftSelection(-1));
+    this.input.keyboard.on('keydown-A', () => this.shiftSelection(-1));
+    this.input.keyboard.on('keydown-RIGHT', () => this.shiftSelection(1));
+    this.input.keyboard.on('keydown-D', () => this.shiftSelection(1));
+
+    this.input.keyboard.on('keydown-ENTER', () => this.startGame());
+    this.input.keyboard.on('keydown-SPACE', () => this.startGame());
+
+    this.updateSelectionDisplay();
+  }
+
+  shiftSelection(dir) {
+    this.selectedIndex = Phaser.Math.Wrap(this.selectedIndex + dir, 0, MONSTER_ROSTER.length);
+    this.updateSelectionDisplay();
+  }
+
+  updateSelectionDisplay() {
+    const monster = MONSTER_ROSTER[this.selectedIndex];
+    const stats = monster.stats;
+    this.previewCar.setTexture(monster.textureKey);
+    this.selectionTitle.setText(`${monster.name.toUpperCase()}`);
+    this.selectionStats.setText(
+      `SPD ${Math.round(stats.maxSpeed)}   ACC ${Math.round(stats.acceleration)}   HP ${Math.round(stats.hp)}   TURN ${Math.round(stats.turnSpeed)}`
+    );
+  }
+
+  startGame() {
+    const selectedMonster = MONSTER_ROSTER[this.selectedIndex];
+    this.scene.start('GameScene', { selectedMonster });
   }
 }

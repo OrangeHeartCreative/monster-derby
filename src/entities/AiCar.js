@@ -27,8 +27,9 @@ export class AiCar extends Phaser.Physics.Arcade.Sprite {
     this.aggression     = AI.AGGRESSION + Math.random() * 0.2;
 
     /* physics */
+    this.baseDrag = AI.DRAG;
     this.body.setCircle(13, 9, 1);
-    this.body.setDrag(AI.DRAG, AI.DRAG);
+    this.body.setDrag(this.baseDrag, this.baseDrag);
     this.body.setMaxVelocity(AI.MAX_SPEED);
     this.body.setBounce(AI.BOUNCE);
     this.body.setCollideWorldBounds(true);
